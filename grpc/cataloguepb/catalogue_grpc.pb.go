@@ -27,7 +27,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CatalogueService_GetItem_FullMethodName = "/dx.catalogue.v1.CatalogueService/GetItem"
+	CatalogueService_GetItem_FullMethodName           = "/dx.catalogue.v1.CatalogueService/GetItem"
+	CatalogueService_GetItemAccessInfo_FullMethodName = "/dx.catalogue.v1.CatalogueService/GetItemAccessInfo"
 )
 
 // CatalogueServiceClient is the client API for CatalogueService service.
@@ -46,6 +47,16 @@ type CatalogueServiceClient interface {
 	// caller-supplied user id in the message body would be an unauthenticated
 	// claim, which is the class of defect ADR-06 exists to remove.
 	GetItem(ctx context.Context, in *GetItemRequest, opts ...grpc.CallOption) (*GetItemResponse, error)
+	// GetItemAccessInfo returns an item's access record for the platform's
+	// decision point (dx-authz-go), whoever the end user is.
+	//
+	// Unlike GetItem it applies NO subject visibility: the PDP needs the owner,
+	// organisation and access policy of a PRIVATE item precisely to decide that
+	// a non-owner may not read it, and a lookup filtered by the same rule would
+	// answer "not found" before the decision is made. That makes this RPC more
+	// powerful than GetItem, so the catalogue serves it only to the workloads it
+	// lists as access-info callers (default: the PDP alone).
+	GetItemAccessInfo(ctx context.Context, in *GetItemAccessInfoRequest, opts ...grpc.CallOption) (*GetItemAccessInfoResponse, error)
 }
 
 type catalogueServiceClient struct {
@@ -60,6 +71,16 @@ func (c *catalogueServiceClient) GetItem(ctx context.Context, in *GetItemRequest
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetItemResponse)
 	err := c.cc.Invoke(ctx, CatalogueService_GetItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogueServiceClient) GetItemAccessInfo(ctx context.Context, in *GetItemAccessInfoRequest, opts ...grpc.CallOption) (*GetItemAccessInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetItemAccessInfoResponse)
+	err := c.cc.Invoke(ctx, CatalogueService_GetItemAccessInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +103,16 @@ type CatalogueServiceServer interface {
 	// caller-supplied user id in the message body would be an unauthenticated
 	// claim, which is the class of defect ADR-06 exists to remove.
 	GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error)
+	// GetItemAccessInfo returns an item's access record for the platform's
+	// decision point (dx-authz-go), whoever the end user is.
+	//
+	// Unlike GetItem it applies NO subject visibility: the PDP needs the owner,
+	// organisation and access policy of a PRIVATE item precisely to decide that
+	// a non-owner may not read it, and a lookup filtered by the same rule would
+	// answer "not found" before the decision is made. That makes this RPC more
+	// powerful than GetItem, so the catalogue serves it only to the workloads it
+	// lists as access-info callers (default: the PDP alone).
+	GetItemAccessInfo(context.Context, *GetItemAccessInfoRequest) (*GetItemAccessInfoResponse, error)
 	mustEmbedUnimplementedCatalogueServiceServer()
 }
 
@@ -94,6 +125,9 @@ type UnimplementedCatalogueServiceServer struct{}
 
 func (UnimplementedCatalogueServiceServer) GetItem(context.Context, *GetItemRequest) (*GetItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetItem not implemented")
+}
+func (UnimplementedCatalogueServiceServer) GetItemAccessInfo(context.Context, *GetItemAccessInfoRequest) (*GetItemAccessInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetItemAccessInfo not implemented")
 }
 func (UnimplementedCatalogueServiceServer) mustEmbedUnimplementedCatalogueServiceServer() {}
 func (UnimplementedCatalogueServiceServer) testEmbeddedByValue()                          {}
@@ -134,6 +168,24 @@ func _CatalogueService_GetItem_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogueService_GetItemAccessInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetItemAccessInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogueServiceServer).GetItemAccessInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogueService_GetItemAccessInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogueServiceServer).GetItemAccessInfo(ctx, req.(*GetItemAccessInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CatalogueService_ServiceDesc is the grpc.ServiceDesc for CatalogueService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -144,6 +196,10 @@ var CatalogueService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetItem",
 			Handler:    _CatalogueService_GetItem_Handler,
+		},
+		{
+			MethodName: "GetItemAccessInfo",
+			Handler:    _CatalogueService_GetItemAccessInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
