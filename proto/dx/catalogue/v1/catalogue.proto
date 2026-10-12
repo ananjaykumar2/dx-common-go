@@ -23,6 +23,17 @@ service CatalogueService {
   // caller-supplied user id in the message body would be an unauthenticated
   // claim, which is the class of defect ADR-06 exists to remove.
   rpc GetItem(GetItemRequest) returns (GetItemResponse);
+
+  // GetItemAccessInfo returns an item's access record for the platform's
+  // decision point (dx-authz-go), whoever the end user is.
+  //
+  // Unlike GetItem it applies NO subject visibility: the PDP needs the owner,
+  // organisation and access policy of a PRIVATE item precisely to decide that
+  // a non-owner may not read it, and a lookup filtered by the same rule would
+  // answer "not found" before the decision is made. That makes this RPC more
+  // powerful than GetItem, so the catalogue serves it only to the workloads it
+  // lists as access-info callers (default: the PDP alone).
+  rpc GetItemAccessInfo(GetItemAccessInfoRequest) returns (GetItemAccessInfoResponse);
 }
 
 message GetItemRequest {
@@ -33,6 +44,18 @@ message GetItemRequest {
 message GetItemResponse {
   // False when no item exists for the id. Callers must check it: a zero-valued
   // Item is not the same as a missing one.
+  bool found = 1;
+
+  Item item = 2;
+}
+
+message GetItemAccessInfoRequest {
+  // Item id (UUID).
+  string item_id = 1;
+}
+
+message GetItemAccessInfoResponse {
+  // False when no item exists for the id — a normal answer, not an error.
   bool found = 1;
 
   Item item = 2;

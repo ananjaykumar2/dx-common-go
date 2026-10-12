@@ -30,6 +30,14 @@ type CheckRequest struct {
 	ResourceType   string      `json:"resource_type" validate:"required"`
 	ResourceID     string      `json:"resource_id" validate:"required"`
 	Relation       string      `json:"relation" validate:"required"`
+
+	// The end user's realm roles, organisation and delegator (the token's
+	// did). dx-authz-go decides a user's read of a resource from the
+	// catalogue the Java way (owner / cos_admin / org_admin, access rules), so
+	// a PEP that has the token sends them. Optional; ignored by OpenFGA.
+	SubjectRoles          []string `json:"subject_roles,omitempty"`
+	SubjectOrganisationID string   `json:"subject_organisation_id,omitempty"`
+	DelegatorID           string   `json:"delegator_id,omitempty"`
 }
 
 // CheckResponse is the authorization decision.

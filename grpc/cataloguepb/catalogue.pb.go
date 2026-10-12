@@ -128,6 +128,104 @@ func (x *GetItemResponse) GetItem() *Item {
 	return nil
 }
 
+type GetItemAccessInfoRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Item id (UUID).
+	ItemId        string `protobuf:"bytes,1,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetItemAccessInfoRequest) Reset() {
+	*x = GetItemAccessInfoRequest{}
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetItemAccessInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetItemAccessInfoRequest) ProtoMessage() {}
+
+func (x *GetItemAccessInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetItemAccessInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetItemAccessInfoRequest) Descriptor() ([]byte, []int) {
+	return file_dx_catalogue_v1_catalogue_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetItemAccessInfoRequest) GetItemId() string {
+	if x != nil {
+		return x.ItemId
+	}
+	return ""
+}
+
+type GetItemAccessInfoResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// False when no item exists for the id — a normal answer, not an error.
+	Found         bool  `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	Item          *Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetItemAccessInfoResponse) Reset() {
+	*x = GetItemAccessInfoResponse{}
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetItemAccessInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetItemAccessInfoResponse) ProtoMessage() {}
+
+func (x *GetItemAccessInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetItemAccessInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetItemAccessInfoResponse) Descriptor() ([]byte, []int) {
+	return file_dx_catalogue_v1_catalogue_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetItemAccessInfoResponse) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+
+func (x *GetItemAccessInfoResponse) GetItem() *Item {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
 // Item is the subset of a catalogue document other services consume. It is
 // deliberately NOT the whole document: a contract that mirrors the storage
 // shape makes every catalogue field an API commitment.
@@ -149,7 +247,7 @@ type Item struct {
 
 func (x *Item) Reset() {
 	*x = Item{}
-	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[2]
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +259,7 @@ func (x *Item) String() string {
 func (*Item) ProtoMessage() {}
 
 func (x *Item) ProtoReflect() protoreflect.Message {
-	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[2]
+	mi := &file_dx_catalogue_v1_catalogue_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +272,7 @@ func (x *Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Item.ProtoReflect.Descriptor instead.
 func (*Item) Descriptor() ([]byte, []int) {
-	return file_dx_catalogue_v1_catalogue_proto_rawDescGZIP(), []int{2}
+	return file_dx_catalogue_v1_catalogue_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Item) GetId() string {
@@ -242,6 +340,11 @@ const file_dx_catalogue_v1_catalogue_proto_rawDesc = "" +
 	"\aitem_id\x18\x01 \x01(\tR\x06itemId\"R\n" +
 	"\x0fGetItemResponse\x12\x14\n" +
 	"\x05found\x18\x01 \x01(\bR\x05found\x12)\n" +
+	"\x04item\x18\x02 \x01(\v2\x15.dx.catalogue.v1.ItemR\x04item\"3\n" +
+	"\x18GetItemAccessInfoRequest\x12\x17\n" +
+	"\aitem_id\x18\x01 \x01(\tR\x06itemId\"\\\n" +
+	"\x19GetItemAccessInfoResponse\x12\x14\n" +
+	"\x05found\x18\x01 \x01(\bR\x05found\x12)\n" +
 	"\x04item\x18\x02 \x01(\v2\x15.dx.catalogue.v1.ItemR\x04item\"\xff\x01\n" +
 	"\x04Item\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -251,9 +354,10 @@ const file_dx_catalogue_v1_catalogue_proto_rawDesc = "" +
 	"\rowner_user_id\x18\x05 \x01(\tR\vownerUserId\x12'\n" +
 	"\x0forganization_id\x18\x06 \x01(\tR\x0eorganizationId\x12+\n" +
 	"\x11organization_name\x18\a \x01(\tR\x10organizationName\x12#\n" +
-	"\raccess_policy\x18\b \x01(\tR\faccessPolicy2`\n" +
+	"\raccess_policy\x18\b \x01(\tR\faccessPolicy2\xcc\x01\n" +
 	"\x10CatalogueService\x12L\n" +
-	"\aGetItem\x12\x1f.dx.catalogue.v1.GetItemRequest\x1a .dx.catalogue.v1.GetItemResponseBAZ?github.com/datakaveri/dx-common-go/grpc/cataloguepb;cataloguepbb\x06proto3"
+	"\aGetItem\x12\x1f.dx.catalogue.v1.GetItemRequest\x1a .dx.catalogue.v1.GetItemResponse\x12j\n" +
+	"\x11GetItemAccessInfo\x12).dx.catalogue.v1.GetItemAccessInfoRequest\x1a*.dx.catalogue.v1.GetItemAccessInfoResponseBAZ?github.com/datakaveri/dx-common-go/grpc/cataloguepb;cataloguepbb\x06proto3"
 
 var (
 	file_dx_catalogue_v1_catalogue_proto_rawDescOnce sync.Once
@@ -267,21 +371,26 @@ func file_dx_catalogue_v1_catalogue_proto_rawDescGZIP() []byte {
 	return file_dx_catalogue_v1_catalogue_proto_rawDescData
 }
 
-var file_dx_catalogue_v1_catalogue_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_dx_catalogue_v1_catalogue_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_dx_catalogue_v1_catalogue_proto_goTypes = []any{
-	(*GetItemRequest)(nil),  // 0: dx.catalogue.v1.GetItemRequest
-	(*GetItemResponse)(nil), // 1: dx.catalogue.v1.GetItemResponse
-	(*Item)(nil),            // 2: dx.catalogue.v1.Item
+	(*GetItemRequest)(nil),            // 0: dx.catalogue.v1.GetItemRequest
+	(*GetItemResponse)(nil),           // 1: dx.catalogue.v1.GetItemResponse
+	(*GetItemAccessInfoRequest)(nil),  // 2: dx.catalogue.v1.GetItemAccessInfoRequest
+	(*GetItemAccessInfoResponse)(nil), // 3: dx.catalogue.v1.GetItemAccessInfoResponse
+	(*Item)(nil),                      // 4: dx.catalogue.v1.Item
 }
 var file_dx_catalogue_v1_catalogue_proto_depIdxs = []int32{
-	2, // 0: dx.catalogue.v1.GetItemResponse.item:type_name -> dx.catalogue.v1.Item
-	0, // 1: dx.catalogue.v1.CatalogueService.GetItem:input_type -> dx.catalogue.v1.GetItemRequest
-	1, // 2: dx.catalogue.v1.CatalogueService.GetItem:output_type -> dx.catalogue.v1.GetItemResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: dx.catalogue.v1.GetItemResponse.item:type_name -> dx.catalogue.v1.Item
+	4, // 1: dx.catalogue.v1.GetItemAccessInfoResponse.item:type_name -> dx.catalogue.v1.Item
+	0, // 2: dx.catalogue.v1.CatalogueService.GetItem:input_type -> dx.catalogue.v1.GetItemRequest
+	2, // 3: dx.catalogue.v1.CatalogueService.GetItemAccessInfo:input_type -> dx.catalogue.v1.GetItemAccessInfoRequest
+	1, // 4: dx.catalogue.v1.CatalogueService.GetItem:output_type -> dx.catalogue.v1.GetItemResponse
+	3, // 5: dx.catalogue.v1.CatalogueService.GetItemAccessInfo:output_type -> dx.catalogue.v1.GetItemAccessInfoResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_dx_catalogue_v1_catalogue_proto_init() }
@@ -295,7 +404,7 @@ func file_dx_catalogue_v1_catalogue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_dx_catalogue_v1_catalogue_proto_rawDesc), len(file_dx_catalogue_v1_catalogue_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
