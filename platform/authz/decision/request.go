@@ -21,6 +21,17 @@ type Subject struct {
 	Properties map[string]any `json:"properties,omitempty"`
 }
 
+// Subject property keys a PEP sets from the verified token. The PDP's
+// catalogue-aware data-access decision reads them — Java's owner / cos_admin /
+// org_admin checks and access rules need the roles and organisation, and
+// delegation needs the token's did. Named once here so the PEP and PDP cannot
+// drift on a spelling.
+const (
+	SubjectPropRoles          = "roles"
+	SubjectPropOrganisationID = "organisation_id"
+	SubjectPropDelegatorID    = "delegator_id"
+)
+
 // Action names a ratified permission (read|query|write|share|own). The
 // own→share→write→query→read implication is resolved inside the engine; the
 // wire never carries a delegated_* variant (§8.2).

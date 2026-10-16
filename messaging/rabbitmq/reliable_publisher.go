@@ -285,9 +285,13 @@ func (p *ReliablePublisher) watch(conn *amqp.Connection, ch *amqp.Channel) {
 	}
 	// The close reason is the only evidence of WHY the broker link went away
 	// (idle timeout, broker restart, channel exception), so it is always logged.
-	var err error = errors.New("closed without an AMQP error")
+	// Declared as error, not inferred: reason is an *amqp.Error, and assigning
+	// a nil one to an interface would make err non-nil.
+	var err error
 	if reason != nil {
 		err = reason
+	} else {
+		err = errors.New("closed without an AMQP error")
 	}
 	p.logger.Warn("publisher connection lost, reconnecting",
 		zap.String("exchange", p.cfg.Exchange), zap.Error(err))

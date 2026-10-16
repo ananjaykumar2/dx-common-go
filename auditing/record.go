@@ -46,6 +46,10 @@ const (
 	OriginGateway   = "GATEWAY"
 	OriginOGCRS     = "OGC_RS"
 	OriginSandbox   = "SANDBOX"
+	// Added by dx-audit-go migration 0002 / controlplane V85. Both services
+	// published these as literals the enum rejected, so every record was lost.
+	OriginCommunity   = "COMMUNITY"
+	OriginMarketplace = "MARKETPLACE"
 )
 
 // createdAtLayout matches Java LocalDateTime.toString() (no zone); the value

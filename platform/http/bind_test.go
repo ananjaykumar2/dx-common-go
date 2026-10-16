@@ -138,3 +138,50 @@ func TestMissingSubjectStillFails(t *testing.T) {
 		t.Fatal("bind succeeded with no subject on the context, want ErrNoSubject")
 	}
 }
+
+// Request bases are commonly UNEXPORTED types embedded in each request. Such a
+// field is not itself settable, but its exported fields are; the binder must
+// reach them. It used to skip the subtree, so path ids and the caller bound as
+// zero values with no error.
+func TestBindReachesUnexportedEmbeddedBases(t *testing.T) {
+	type base struct {
+		Actor
+		ID string `path:"id"`
+	}
+	type req struct {
+		base
+		Name string `json:"name"`
+	}
+	r := httptest.NewRequest(http.MethodPost, "/things/t-1", strings.NewReader(`{"name":"n"}`))
+	r.SetPathValue("id", "t-1")
+	r = r.WithContext(identity.With(r.Context(), identity.Subject{ID: "u-1"}))
+
+	got, err := bind[req](r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// got.ID is the base's path id; the caller's id is reached through Actor.
+	if actor := got.Actor; actor.ID != "u-1" || got.ID != "t-1" || got.Name != "n" {
+		t.Fatalf("bound %+v — the unexported embedded base was skipped", got)
+	}
+}
+
+// The same, with the body fields themselves inside an unexported embedded type.
+func TestBindDecodesBodyThroughUnexportedEmbedding(t *testing.T) {
+	type body struct {
+		Name string `json:"name"`
+	}
+	type req struct {
+		Actor
+		body
+	}
+	r := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(`{"name":"n"}`))
+	r = r.WithContext(identity.With(r.Context(), identity.Subject{ID: "u-1"}))
+	got, err := bind[req](r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Name != "n" || got.ID != "u-1" {
+		t.Fatalf("bound %+v", got)
+	}
+}

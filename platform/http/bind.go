@@ -198,6 +198,25 @@ func bindStruct(v reflect.Value, r *http.Request) error {
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
 		field, value := t.Field(i), v.Field(i)
+
+		// Embedded struct without a tag: recurse, so a shared set of filter
+		// fields can be composed into several request types.
+		//
+		// This runs BEFORE the CanSet check, deliberately. An embedded struct
+		// of an UNEXPORTED type (`type databankReq struct{...}` embedded in a
+		// request) is not itself settable, but its exported fields are —
+		// reflect, like encoding/json, lets them through. Checking CanSet first
+		// skipped the whole subtree: the path ids and the verified caller of
+		// every such request bound as zero values, silently, with a 200.
+		if field.Anonymous && field.Type.Kind() == reflect.Struct && field.Tag == "" &&
+			field.Type != reflect.TypeOf(Actor{}) && field.Type != reflect.TypeOf(OptionalActor{}) &&
+			field.Type != reflect.TypeOf(paging.Request{}) {
+			if err := bindStruct(value, r); err != nil {
+				return err
+			}
+			continue
+		}
+
 		if !value.CanSet() {
 			continue
 		}
@@ -233,15 +252,6 @@ func bindStruct(v reflect.Value, r *http.Request) error {
 				return errors.Validation(err.Error())
 			}
 			value.Set(reflect.ValueOf(p.Request))
-			continue
-		}
-
-		// Embedded struct without a tag: recurse, so a shared set of filter
-		// fields can be composed into several request types.
-		if field.Anonymous && field.Type.Kind() == reflect.Struct && field.Tag == "" {
-			if err := bindStruct(value, r); err != nil {
-				return err
-			}
 			continue
 		}
 
@@ -287,6 +297,13 @@ func decodeBody(v reflect.Value, r *http.Request) error {
 		return nil
 	}
 	if !hasJSONField(v.Type()) {
+		return nil
+	}
+	// A nested value reached through an unexported embedded field cannot be
+	// handed to encoding/json (Interface panics) — and need not be: the
+	// top-level decode already filled its exported fields, which json
+	// promotes through the embedding.
+	if !v.CanAddr() || !v.Addr().CanInterface() {
 		return nil
 	}
 	if r.Body == nil {
