@@ -28,6 +28,17 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
+// Flush passes through, so a streaming response (SSE) wrapped by the access
+// log is still delivered event by event rather than held in a buffer.
+func (rw *responseWriter) Flush() {
+	if f, ok := rw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+// Unwrap exposes the underlying writer to http.ResponseController.
+func (rw *responseWriter) Unwrap() http.ResponseWriter { return rw.ResponseWriter }
+
 // Logger returns a chi-compatible middleware that logs each request using zap.
 // Fields logged: method, path, status code, response time, bytes, requestID.
 func Logger(logger *zap.Logger) func(http.Handler) http.Handler {

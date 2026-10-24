@@ -26,6 +26,11 @@ const (
 	// end-user subject. An impersonation attempt, or a missing entry in
 	// SubjectAsserters during rollout. Alert on it either way.
 	resultSubjectDenied = "subject_denied"
+	// resultAbsent — no credential, under MiddlewareOptional. Not a rejection:
+	// an edge that serves end users (the gateway) sees this on every browser
+	// request. It is counted so a dashboard can tell "no service called" from
+	// "a service called without its credential" by caller label alone.
+	resultAbsent = "absent"
 )
 
 // callerUnknown labels a failure whose caller could not be established.

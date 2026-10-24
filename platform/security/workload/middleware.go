@@ -64,6 +64,57 @@ func Middleware(v *Verifier) func(http.Handler) http.Handler {
 	}
 }
 
+// MiddlewareOptional verifies a workload credential when one is PRESENT and
+// passes the request through untouched when it is absent.
+//
+// It exists for exactly one kind of surface: an edge that serves end users AND
+// receives service-to-service traffic on the same listener — dx-gateway-go,
+// which browsers call with no workload credential and dx-mcp-gateway-go calls
+// back into with one. Middleware cannot be used there: it rejects every request
+// without a credential, which would 401 every end user.
+//
+// It is NOT the removed `permissive` mode. Permissive let a request with no
+// credential carry ASSERTED SUBJECT HEADERS on to the resolver; this does not
+// establish any principal for an absent credential, so anything downstream that
+// requires one (RequireCaller, the gateway's agent hop check, the subject-header
+// resolver) still fails closed. Absence buys nothing; only a verified
+// credential produces a principal.
+//
+// A credential that is present and invalid is rejected outright — never
+// downgraded to "absent" — so a caller cannot escape a failed check by sending
+// a deliberately broken token.
+//
+// A nil Verifier passes everything through, like Middleware.
+func MiddlewareOptional(v *Verifier) func(http.Handler) http.Handler {
+	if v == nil {
+		return passthrough
+	}
+	mode := v.enforcement
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			raw := bearerToken(r.Header.Get(HdrWorkload))
+			if raw == "" {
+				record(resultAbsent, "", mode)
+				next.ServeHTTP(w, r)
+				return
+			}
+			p, err := v.Verify(raw)
+			if err != nil {
+				record(resultRejected, "", mode)
+				dxerrors.WriteError(w, dxerrors.NewUnauthorized("invalid workload credential"))
+				return
+			}
+			if assertsSubject(r.Header) && !v.MayAssertSubject(p) {
+				record(resultSubjectDenied, p.ID, mode)
+				dxerrors.WriteError(w, dxerrors.NewForbidden("this workload may not assert an end-user subject"))
+				return
+			}
+			record(resultVerified, p.ID, mode)
+			next.ServeHTTP(w, r.WithContext(With(r.Context(), p)))
+		})
+	}
+}
+
 // RequireCaller rejects any request whose verified workload is not one of ids.
 //
 // This is the replacement for auth/resolver.RequireGatewayOrigin, which could
